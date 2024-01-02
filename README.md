@@ -8,7 +8,7 @@
 
 
 ## Architecture
-
+(It seems that the images do not display correctly at Anonymous GitHub. The following two images are paperImgs/fig1.png and paperImgs/fig2.png respectively)
 <table>
   <tr>
     <td colspan="2" align="center"> <img src = "paperImgs/fig1.png" width="800"> </td>
@@ -26,7 +26,8 @@
 
 ## How to use
 #### JUEMR dataset & pre-trained Models
-JUEMR dataset can be downloaded at [https://drive.google.com/file/d/1g9KeRR3sv_bxsHMV8HTfUK-E5o4zZ_A-/view?usp=sharing]
+JUEMR dataset can be downloaded at [https://drive.google.com/file/d/1g9KeRR3sv_bxsHMV8HTfUK-E5o4zZ_A-/view?usp=sharing] 
+(Anonymised)
 
 #### Training
 ```shell
