@@ -14,14 +14,12 @@ JUEMR dataset can be downloaded at [https://drive.google.com/file/d/1g9KeRR3sv_b
     <td colspan="2" align="center"> <img src = "paperImgs/fig1.png" width="800"> </td>
   </tr>
   <tr>
-    <td colspan="2" align="center"><p><b>Overall Architecture</b></p></td>
+    <td colspan="2" align="center"><p><b>TJUMnet Architecture</b></p></td>
   </tr>
   <tr>
-    <td align="center"> <img src = "paperImgs/fig2.png" width="400"> </td>
-    <td align="center"> <img src = "paperImgs/fig3.png" width="400"> </td>
+    <td align="center"> <img src = "paperImgs/fig2.png" width="800"> </td>
   </tr>
   <tr>
-    <td align="center"><p><b>Collaborative Knowledge Trasfer</b></p></td>
-    <td align="center"><p><b>Multi-contrastive Regularization</b></p></td>
+    <td align="center"><p><b>Latent Space Architecture</b></p></td>
   </tr>
 </table>
