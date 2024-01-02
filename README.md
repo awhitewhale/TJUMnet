@@ -35,5 +35,7 @@ python train.py --dataset_train utils.dataset.DatasetForTrain --dataset_valid ut
 #### Inference
 
 ```shell
-python inference.py --dataset_train utils.dataset.DatasetForTrain --dataset_valid utils.dataset.DatasetForValid --train dataset/JUEMR/train --valid dataset/JUEMR/test --save-dir savedir
+python inference.py 
 ```
+
+

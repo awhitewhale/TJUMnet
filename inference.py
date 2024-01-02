@@ -60,9 +60,6 @@ def main1(dir_path, save_dir):
                         pin_memory=True)
 
     model = Net()
-
-
-    assert os.path.isfile(args.checkpoint), "The checkpoint '{}' does not exist".format(args.checkpoint)
     checkpoint = torch.load(args.checkpoint)
     model.load_state_dict(checkpoint['state_dict'], strict=False)
 
