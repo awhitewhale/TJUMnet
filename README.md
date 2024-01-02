@@ -1,6 +1,6 @@
 # Two-stage Joint Underwater Image Enhancement and Marine Snow Removal via Teacher-Guided Feature Optimization
 
-JUEMR dataset can be downloaded at [https://drive.google.com/file/d/1g9KeRR3sv_bxsHMV8HTfUK-E5o4zZ_A-/view?usp=sharing]
+
 
 <hr />
 
@@ -23,3 +23,17 @@ JUEMR dataset can be downloaded at [https://drive.google.com/file/d/1g9KeRR3sv_b
     <td align="center"><p><b>Latent Space Architecture</b></p></td>
   </tr>
 </table>
+
+## How to use
+#### JUEMR dataset & pre-trained Models
+JUEMR dataset can be downloaded at [https://drive.google.com/file/d/1g9KeRR3sv_bxsHMV8HTfUK-E5o4zZ_A-/view?usp=sharing]
+
+#### Training
+```shell
+python train.py --dataset_train utils.dataset.DatasetForTrain --dataset_valid utils.dataset.DatasetForValid --train dataset/JUEMR/train --valid dataset/JUEMR/test --save-dir savedir
+```
+#### Inference
+
+```shell
+python inference.py --dataset_train utils.dataset.DatasetForTrain --dataset_valid utils.dataset.DatasetForValid --train dataset/JUEMR/train --valid dataset/JUEMR/test --save-dir savedir
+```
