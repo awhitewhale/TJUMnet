@@ -3,7 +3,11 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
 from math import exp
-import importlib
+from torch.utils.data import Dataset
+import json
+from torchvision import transforms
+import os, random
+from PIL import Image
 
 
 class Collate():
@@ -112,9 +116,77 @@ def ssim(img1, img2, window_size=11, size_average=True):
     return _ssim(img1, img2, window, window_size, channel, size_average)
 
 
-def get_func(path):
-    module = path[:path.rfind('.')]
-    model_name = path[path.rfind('.') + 1:]
-    mod = importlib.import_module(module)
-    net_func = getattr(mod, model_name)
-    return net_func
+class DatasetForTrain(Dataset):
+    def __init__(self, meta_path):
+        self.datasets = []
+        self.file_paths = [os.path.join(root, file) for root, dirs, files in os.walk(meta_path + 'GT/') for file in files]
+        for file_path in self.file_paths:
+            with open(file_path, "r") as f:
+                self.datasets.append(file_path)
+                self.image_size = 224
+                self.transform = transforms.ToTensor()
+                self.resize = transforms.Resize((self.image_size, self.image_size))
+    def __len__(self):
+        return len(self.file_paths)
+
+    def __getitem__(self, index):
+        path = self.datasets
+        target_path, input_path = path[index], path[index].replace('GT', 'heavy_snow')
+        target_image = Image.open(target_path).convert('RGB')
+        input_image = Image.open(input_path).convert('RGB')
+
+        target_image = self.transform(target_image)
+        input_image = self.transform(input_image)
+
+        target_image, input_image = self.rand_crop(target_image, input_image)
+        target_image, input_image = self.rand_flip(target_image, input_image)
+
+        return target_image, input_image
+
+    def rand_flip(self, target_image, input_image):
+        if random.random() > 0.5:
+            target_image = target_image.flip(2)
+            input_image = input_image.flip(2)
+
+        return target_image, input_image
+
+    def rand_crop(self, target_image, input_image):
+        h, w = target_image.shape[1], target_image.shape[2]
+        if h < self.image_size or w < self.image_size:
+            return self.resize(input_image), self.resize(target_image)
+
+        rr = random.randint(0, h - self.image_size)
+        cc = random.randint(0, w - self.image_size)
+
+        target_image = target_image[:, rr: rr + self.image_size, cc: cc + self.image_size]
+        input_image = input_image[:, rr: rr + self.image_size, cc: cc + self.image_size]
+
+        return target_image, input_image
+
+class DatasetForValid(Dataset):
+    def __init__(self, meta_path):
+        self.dataset = []
+        self.file_paths = [os.path.join(root, file) for root, dirs, files in os.walk(meta_path + 'GT/') for file in files]
+        for file_path in self.file_paths:
+            self.dataset.append(file_path)
+            self.transform = transforms.ToTensor()
+
+    def __len__(self):
+        return len(self.file_paths)
+
+    def __getitem__(self, index):
+        path = self.datasets
+        target_path, input_path = path[index], path[index].replace('GT', 'heavy_snow')
+
+        target_image = Image.open(target_path).convert('RGB')
+        input_image = Image.open(input_path).convert('RGB')
+
+        target_image = self.transform(target_image)
+        input_image = self.transform(input_image)
+
+        _, h, w = target_image.shape
+        if (h % 16 != 0) or (w % 16 != 0):
+            target_image = transforms.Resize(((h // 16) * 16, (w // 16) * 16))(target_image)
+            input_image = transforms.Resize(((h // 16) * 16, (w // 16) * 16))(input_image)
+
+        return target_image, input_image
