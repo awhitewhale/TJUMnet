@@ -7,6 +7,7 @@ from torch.utils.data import Dataset
 import json
 from torchvision import transforms
 import os, random
+from glob import glob
 from PIL import Image
 
 
@@ -116,6 +117,30 @@ def ssim(img1, img2, window_size=11, size_average=True):
     return _ssim(img1, img2, window, window_size, channel, size_average)
 
 
+class Collate():
+    def __init__(self, n_degrades) -> None:
+        self.n_degrades = n_degrades
+
+    def __call__(self, batch):
+
+        target_images = [[] for _ in range(self.n_degrades)]
+        input_images = [[] for _ in range(self.n_degrades)]
+
+        for i in range(len(batch)):
+            target_image, input_image, dataset_label = batch[i]
+            target_images[dataset_label].append(target_image.unsqueeze(0))
+            input_images[dataset_label].append(input_image.unsqueeze(0))
+
+        for i in range(len(target_images)):
+            if target_images[i] == []:
+                return None, None
+            target_images[i] = torch.cat(target_images[i])
+            input_images[i] = torch.cat(input_images[i])
+        target_images = torch.cat(target_images)
+
+        return target_images, input_images
+
+
 class DatasetForTrain(Dataset):
     def __init__(self, meta_path):
         self.datasets = []
@@ -130,6 +155,7 @@ class DatasetForTrain(Dataset):
         return len(self.file_paths)
 
     def __getitem__(self, index):
+        dataset_label = 0
         path = self.datasets
         target_path, input_path = path[index], path[index].replace('GT', 'heavy_snow')
         target_image = Image.open(target_path).convert('RGB')
@@ -141,7 +167,7 @@ class DatasetForTrain(Dataset):
         target_image, input_image = self.rand_crop(target_image, input_image)
         target_image, input_image = self.rand_flip(target_image, input_image)
 
-        return target_image, input_image
+        return target_image, input_image, dataset_label
 
     def rand_flip(self, target_image, input_image):
         if random.random() > 0.5:
@@ -175,7 +201,7 @@ class DatasetForValid(Dataset):
         return len(self.file_paths)
 
     def __getitem__(self, index):
-        path = self.datasets
+        path = self.dataset
         target_path, input_path = path[index], path[index].replace('GT', 'heavy_snow')
 
         target_image = Image.open(target_path).convert('RGB')
@@ -190,3 +216,20 @@ class DatasetForValid(Dataset):
             input_image = transforms.Resize(((h // 16) * 16, (w // 16) * 16))(input_image)
 
         return target_image, input_image
+
+
+class DatasetForInference(Dataset):
+    def __init__(self, dir_path):
+        self.image_paths = glob(os.path.join(dir_path + 'heavy_snow/', '*'))
+        self.transform = transforms.ToTensor()
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, index):
+        input_path = self.image_paths[index]
+        input_image = Image.open(input_path).convert('RGB')
+        input_image = self.transform(input_image)
+
+        _, h, w = input_image.shape
+        return input_image, os.path.basename(input_path), _, h, w

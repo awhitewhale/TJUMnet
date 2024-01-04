@@ -197,9 +197,9 @@ class RDB(nn.Module):
     out = out + x
     return out
 
-class Decoder_MDCBlock1(torch.nn.Module):
+class ls_block(torch.nn.Module):
     def __init__(self, num_filter, num_ft, kernel_size=4, stride=2, padding=1, bias=True, activation='prelu', norm=None, mode='iter1'):
-        super(Decoder_MDCBlock1, self).__init__()
+        super(ls_block, self).__init__()
         self.mode = mode
         self.num_ft = num_ft - 1
         self.down_convs = nn.ModuleList()
@@ -271,16 +271,7 @@ class DeconvBlock(torch.nn.Module):
             self.bn = torch.nn.InstanceNorm2d(output_size)
 
         self.activation = activation
-        if self.activation == 'relu':
-            self.act = torch.nn.ReLU(True)
-        elif self.activation == 'prelu':
-            self.act = torch.nn.PReLU()
-        elif self.activation == 'lrelu':
-            self.act = torch.nn.LeakyReLU(0.2, True)
-        elif self.activation == 'tanh':
-            self.act = torch.nn.Tanh()
-        elif self.activation == 'sigmoid':
-            self.act = torch.nn.Sigmoid()
+        self.act = torch.nn.PReLU()
 
     def forward(self, x):
         if self.norm is not None:
@@ -294,19 +285,18 @@ class DeconvBlock(torch.nn.Module):
             return out
 
 
-class Encoder_MDCBlock1(torch.nn.Module):
-    def __init__(self, num_filter, num_ft, kernel_size=4, stride=2, padding=1, bias=True, activation='prelu', norm=None, mode='iter1'):
-        super(Encoder_MDCBlock1, self).__init__()
-        self.mode = mode
+class ils_block(torch.nn.Module):
+    def __init__(self, num_filter, num_ft):
+        super(ils_block, self).__init__()
         self.num_ft = num_ft - 1
         self.up_convs = nn.ModuleList()
         self.down_convs = nn.ModuleList()
         for i in range(self.num_ft):
             self.up_convs.append(
-                DeconvBlock(num_filter//(2**i), num_filter//(2**(i+1)), kernel_size, stride, padding, bias, activation, norm=None)
+                DeconvBlock(num_filter//(2**i), num_filter//(2**(i+1)), 4, 2, 1, True, 'prelu', None)
             )
             self.down_convs.append(
-                ConvBlock(num_filter//(2**(i+1)), num_filter//(2**i), kernel_size, stride, padding, bias, activation, norm=None)
+                ConvBlock(num_filter//(2**(i+1)), num_filter//(2**i), 4, 2, 1, True, 'prelu', None)
             )
 
     def forward(self, ft_l, ft_h_list):
@@ -317,7 +307,6 @@ class Encoder_MDCBlock1(torch.nn.Module):
                 ft = self.up_convs[j](ft)
             ft = ft - ft_h_list[i]
             for j in range(self.num_ft - i):
-                # print(j)
                 ft = self.down_convs[self.num_ft - i - j - 1](ft)
             ft_fusion = ft_fusion + ft
         return ft_fusion
@@ -346,7 +335,7 @@ class Net(nn.Module):
 
         self.conv2x = ConvLayer(16, 32, kernel_size=3, stride=2)
         self.conv1 = RDB(16, 4, 16)
-        self.fusion1 = Encoder_MDCBlock1(16, 2, mode='iter2')
+        self.fusion1 = ils_block(16, 2)
         self.dense1 = nn.Sequential(
             ResidualBlock(32),
             ResidualBlock(32),
@@ -355,7 +344,7 @@ class Net(nn.Module):
 
         self.conv4x = ConvLayer(32, 64, kernel_size=3, stride=2)
         self.conv2 = RDB(32, 4, 32)
-        self.fusion2 = Encoder_MDCBlock1(32, 3, mode='iter2')
+        self.fusion2 = ils_block(32, 3)
         self.dense2 = nn.Sequential(
             ResidualBlock(64),
             ResidualBlock(64),
@@ -364,7 +353,7 @@ class Net(nn.Module):
 
         self.conv8x = ConvLayer(64, 128, kernel_size=3, stride=2)
         self.conv3 = RDB(64, 4, 64)
-        self.fusion3 = Encoder_MDCBlock1(64, 4, mode='iter2')
+        self.fusion3 = ils_block(64, 4)
         self.dense3 = nn.Sequential(
             ResidualBlock(128),
             ResidualBlock(128),
@@ -373,11 +362,11 @@ class Net(nn.Module):
 
         self.conv16x = ConvLayer(128, 256, kernel_size=3, stride=2)
         self.conv4 = RDB(128, 4, 128)
-        self.fusion4 = Encoder_MDCBlock1(128, 5, mode='iter2')
+        self.fusion4 = ils_block(128, 5)
 
-        self.dehaze = nn.Sequential()
+        self.dewater = nn.Sequential()
         for i in range(0, res_blocks):
-            self.dehaze.add_module('res%d' % i, ResidualBlock(256))
+            self.dewater.add_module('res%d' % i, ResidualBlock(256))
 
         self.convd16x = UpsampleConvLayer(256, 128, kernel_size=3, stride=2)
         self.dense_4 = nn.Sequential(
@@ -386,7 +375,7 @@ class Net(nn.Module):
             ResidualBlock(128)
         )
         self.conv_4 = RDB(64, 4, 64)
-        self.fusion_4 = Decoder_MDCBlock1(64, 2, mode='iter2')
+        self.fusion_4 = ls_block(64, 2, mode='iter2')
 
         self.convd8x = UpsampleConvLayer(128, 64, kernel_size=3, stride=2)
         self.dense_3 = nn.Sequential(
@@ -395,7 +384,7 @@ class Net(nn.Module):
             ResidualBlock(64)
         )
         self.conv_3 = RDB(32, 4, 32)
-        self.fusion_3 = Decoder_MDCBlock1(32, 3, mode='iter2')
+        self.fusion_3 = ls_block(32, 3, mode='iter2')
 
         self.convd4x = UpsampleConvLayer(64, 32, kernel_size=3, stride=2)
         self.dense_2 = nn.Sequential(
@@ -404,7 +393,7 @@ class Net(nn.Module):
             ResidualBlock(32)
         )
         self.conv_2 = RDB(16, 4, 16)
-        self.fusion_2 = Decoder_MDCBlock1(16, 4, mode='iter2')
+        self.fusion_2 = ls_block(16, 4, mode='iter2')
 
         self.convd2x = UpsampleConvLayer(32, 16, kernel_size=3, stride=2)
         self.dense_1 = nn.Sequential(
@@ -413,7 +402,7 @@ class Net(nn.Module):
             ResidualBlock(16)
         )
         self.conv_1 = RDB(8, 4, 8)
-        self.fusion_1 = Decoder_MDCBlock1(8, 5, mode='iter2')
+        self.fusion_1 = ls_block(8, 5, mode='iter2')
 
         self.conv_output = ConvLayer(16, 3, kernel_size=3, stride=1)
 
@@ -462,9 +451,9 @@ class Net(nn.Module):
 
         features.append(res16x)
 
-        res_dehaze = res16x
+        res_dewater = res16x
         in_ft = res16x * 2
-        res16x = self.dehaze(in_ft) + in_ft - res_dehaze
+        res16x = self.dewater(in_ft) + in_ft - res_dewater
         res16x_1, res16x_2 = res16x.split([(res16x.size()[1] // 2), (res16x.size()[1] // 2)], dim=1)
         feature_mem_up = [res16x_1]
 

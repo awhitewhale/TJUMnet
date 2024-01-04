@@ -11,7 +11,7 @@ from utils import get_meter, update_meter, torchPSNR, ssim, DatasetForTrain, Dat
 import pandas as pd
 import numpy as np
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '4'
 sys.path.append('../../')
 
 
@@ -19,11 +19,11 @@ def arg():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', type=str, default='/home/masters/liuyifan2/project/dataset/JUEMR/train/')
     parser.add_argument('--test', type=str, default='/home/masters/liuyifan2/project/dataset/JUEMR/test/')
-    parser.add_argument('--save_dir', type=str, default='savedir/')
+    parser.add_argument('--savedir', type=str, default='savedir/')
     parser.add_argument('--epoch', type=int, default=500)
     parser.add_argument('--warmup_epoch', type=int, default=30)
     parser.add_argument('--lr', type=float, default=2e-4)
-    parser.add_argument('--batch_size', type=int, default=16)
+    parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--num_workers', type=int, default=0)
     return parser.parse_args()
 args=arg()
@@ -114,31 +114,30 @@ def main():
     teacher.load_state_dict(checkpoint['state_dict'], strict=True)
     teacher_networks.append(teacher)
 
-
     train_dataset = DatasetForTrain(args.train)
     val_dataset = DatasetForValid(args.test)
     train_loader = DataLoader(dataset=train_dataset, num_workers=args.num_workers, batch_size=args.batch_size,
-                              drop_last=True, shuffle=True)
+                              drop_last=True, shuffle=True, collate_fn=Collate(n_degrades=len(teacher_networks)))
     val_loader = DataLoader(dataset=val_dataset, num_workers=args.num_workers, batch_size=1, drop_last=False,
                             shuffle=False)
 
-    ckt_modules = nn.ModuleList([])
+    tfo_model = nn.ModuleList([])
     for c in [64, 128, 256, 256]:
-        ckt_modules.append(TFO(channel_t=c, channel_s=c, channel_h=c // 2, n_teachers=len(teacher_networks)))
-    ckt_modules = ckt_modules.cuda()
+        tfo_model.append(TFO(channel_t=c, channel_s=c, channel_h=c // 2, n_teachers=len(teacher_networks)))
+    tfo_model = tfo_model.cuda()
 
     criterions = nn.ModuleList([nn.L1Loss(), DFCCLoss(), MDCCLoss()]).cuda()
 
     model = Net().cuda()
 
     linear_scaled_lr = args.lr * args.batch_size / 16
-    optimizer = torch.optim.Adam([{'params': model.parameters()}, {'params': ckt_modules.parameters()}],
+    optimizer = torch.optim.Adam([{'params': model.parameters()}, {'params': tfo_model.parameters()}],
                                  lr=linear_scaled_lr, betas=(0.9, 0.999), eps=1e-8)
 
 
     for epoch in tqdm(range(args.epoch)):
-        if epoch <= 1:
-            train_tfo(model, teacher_networks, ckt_modules, train_loader, optimizer, criterions)
+        if epoch <= 150:
+            train_tfo(model, teacher_networks, tfo_model, train_loader, optimizer, criterions)
         else:
             train_hr(model, train_loader, optimizer, criterions)
 
@@ -146,7 +145,7 @@ def main():
             psnr, ssim = evaluate(model, val_loader, epoch)
             print(psnr, ssim)
 
-        torch.save({'epoch': epoch, 'state_dict': model.state_dict(), 'ckt_module': ckt_modules.state_dict(),
+        torch.save({'epoch': epoch, 'state_dict': model.state_dict(), 'ckt_module': tfo_model.state_dict(),
                     'optimizer': optimizer.state_dict()},
                    os.path.join(args.save_dir, 'latest_model'))
 
