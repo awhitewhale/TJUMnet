@@ -1,13 +1,14 @@
 # Two-stage Joint Underwater Image Enhancement and Marine Snow Removal via Teacher-Guided Feature Optimization 🌊✨
 
-[**UPDATE!**] TJUMnet has now achieved a PSNR of 33.819 and an SSIM of 0.970, significantly outperforming the results reported in the paper. You can easily use TJUMnet at [Google Colab](https://colab.research.google.com/drive/12DC78HlCb9zLKKBkENHV9AF8t7-juvbS?usp=sharing). Demonstrate TJUMnet's amazing performance with just one click!
+[**UPDATE!**] 🚀 TJUMnet has now achieved a PSNR of 33.819 and an SSIM of 0.970, significantly outperforming the results reported in the paper. You can easily use TJUMnet at [Google Colab](https://colab.research.google.com/drive/12DC78HlCb9zLKKBkENHV9AF8t7-juvbS?usp=sharing). Demonstrate TJUMnet's amazing performance with just one click!
 
 <hr />
 
 > **Abstract:** Color shift and marine snow are two severe types of underwater imaging noise that can significantly impact subsequent computer vision tasks. However, existing methods cannot perform underwater image enhancement (UIE) and marine snow removal (MSR) simultaneously with a unified network architecture and a set of pretrained weights. To address this issue, we propose the two-stage joint UIE and MSR network (TJUMnet). With the proposed teacher-guided feature optimization (TFO) and hierarchical reconstruction (HR), TJUMnet can effectively integrate and learn feature representations under various underwater noise conditions. Additionally, we constructed a new joint underwater-image enhancement and marine-snow removal dataset (JUEMR), comprising 2700 image sets covering color shift noise and different intensities of marine snow noise. Extensive experiments on multiple benchmark datasets and the JUEMR dataset demonstrate that TJUMnet reaches state-of-the-art levels in terms of quantitative and visual performance.
 
 ## Architecture 🏗️
-(It seems that the images do not display correctly on Anonymous GitHub. The following two images are paperImgs/fig1.png and paperImgs/fig2.png respectively)
+Check out the innovative architecture of TJUMnet! (Note: Images might not display correctly on Anonymous GitHub.)
+
 <table>
   <tr>
     <td colspan="2" align="center"> <img src="paperImgs/fig1.png" width="800"> </td>
@@ -25,15 +26,14 @@
 
 ## How to Use 🚀
 
-#### JUEMR Dataset & Pre-trained Models
+#### JUEMR Dataset & Pre-trained Models 📦
 
 TJUMnet has now achieved a PSNR of 33.819 and an SSIM of 0.970, significantly outperforming the results reported in the paper. You can easily use TJUMnet at [Google Colab](https://colab.research.google.com/drive/12DC78HlCb9zLKKBkENHV9AF8t7-juvbS?usp=sharing). Demonstrate TJUMnet's amazing performance with just one click!
 
-The JUEMR dataset can be downloaded from [Google Drive](https://drive.google.com/file/d/1g9KeRR3sv_bxsHMV8HTfUK-E5o4zZ_A-/view?usp=sharing) (Anonymised).
-
-The best pre-trained models can be downloaded from:
-- [Model 1](https://drive.google.com/file/d/1OlILJ36JjSKkV8xuQ3WV0XpMy-v1UCfm/view?usp=sharing)
-- [Model 2](https://drive.google.com/file/d/126cjMYeX1NFyAGv21PQBW1ywEumvaLZb/view?usp=sharing)
+- **Download the JUEMR dataset** from [Google Drive](https://drive.google.com/file/d/1g9KeRR3sv_bxsHMV8HTfUK-E5o4zZ_A-/view?usp=sharing).
+- **Get the best pre-trained models** from:
+  - [Model 1](https://drive.google.com/file/d/1OlILJ36JjSKkV8xuQ3WV0XpMy-v1UCfm/view?usp=sharing)
+  - [Model 2](https://drive.google.com/file/d/126cjMYeX1NFyAGv21PQBW1ywEumvaLZb/view?usp=sharing)
 
 #### Training 🏋️‍♂️
 To train the model, use the following command:
