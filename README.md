@@ -1,4 +1,4 @@
-# Two-stage Joint Underwater Image Enhancement and Marine Snow Removal via Teacher-Guided Feature Optimization 🌊✨
+# Underwater vision clearing with latent space alignment for marine scene enhancement 🌊✨
 
 [**UPDATE!**] 🚀 TJUMnet has now achieved a PSNR of 33.819 and an SSIM of 0.970, significantly outperforming the results reported in the paper. You can easily use TJUMnet at [Google Colab](https://colab.research.google.com/drive/12DC78HlCb9zLKKBkENHV9AF8t7-juvbS?usp=sharing). Demonstrate TJUMnet's amazing performance with just one click!
 
